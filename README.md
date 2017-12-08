@@ -13,6 +13,6 @@ just do:
      ./lwm2m-example
 
 and it will connect to that server.
-Browse to the server via http://leshan.eclise.org to check if the client registered and to
+Browse to the server via http://leshan.eclipse.org to check if the client registered and to
 read out values from it.
 

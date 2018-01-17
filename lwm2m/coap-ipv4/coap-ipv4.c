@@ -277,12 +277,6 @@ coap_databuf(void)
   return coap_aligned_buf.u8;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-coap_datalen()
-{
-  return coap_buf_len;
-}
-/*---------------------------------------------------------------------------*/
 static int
 read_packet_to_coapbuf(int fd, int is_secure)
 {
@@ -343,7 +337,7 @@ coap_ipv4_handle_fd(fd_set *rset, fd_set *wset)
       }
       LOG_DBG_("\n");
 #endif /* LOG_DBG_ENABLED */
-      coap_receive(coap_src_endpoint(), coap_databuf(), coap_datalen());
+      coap_receive(coap_src_endpoint(), coap_databuf(), coap_buf_len);
     }
   }
 }
@@ -372,7 +366,7 @@ dtls_ipv4_handle_fd(fd_set *rset, fd_set *wset)
     if(read_packet_to_coapbuf(dtls_ipv4_fd, 1) && dtls_context) {
       /* DTLS receive */
       dtls_handle_message(dtls_context, &last_source,
-                          coap_databuf(), coap_datalen());
+                          coap_databuf(), coap_buf_len);
     }
   }
 }
@@ -533,11 +527,11 @@ input_from_peer(struct dtls_context_t *ctx,
   /* Ensure that the endpoint is tagged as secure */
   session->secure = 1;
 
-  coap_receive(session, coap_databuf(), coap_datalen());
+  coap_receive(session, coap_databuf(), coap_buf_len);
 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 /* This is output from the DTLS code to be sent to peer (encrypted) */
 static int
 output_to_peer(struct dtls_context_t *ctx,
@@ -549,14 +543,14 @@ output_to_peer(struct dtls_context_t *ctx,
   return sendto(fd, data, len, MSG_DONTWAIT,
 		(struct sockaddr *)&session->addr, session->size);
 }
-
+/*---------------------------------------------------------------------------*/
 /* This defines the key-store set API since we hookup DTLS here */
 void
 coap_set_keystore(const coap_keystore_t *keystore)
 {
   dtls_keystore = keystore;
 }
-
+/*---------------------------------------------------------------------------*/
 /* This function is the "key store" for tinyDTLS. It is called to
  * retrieve a key for the given identity within this particular
  * session. */
@@ -629,7 +623,7 @@ get_psk_info(struct dtls_context_t *ctx,
 
   return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
 }
-
+/*---------------------------------------------------------------------------*/
 static dtls_handler_t cb = {
   .write = output_to_peer,
   .read  = input_from_peer,
@@ -644,5 +638,4 @@ static dtls_handler_t cb = {
 };
 
 #endif /* WITH_DTLS */
-
 /*---------------------------------------------------------------------------*/

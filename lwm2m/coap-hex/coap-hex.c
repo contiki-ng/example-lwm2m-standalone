@@ -62,7 +62,6 @@ typedef union {
 
 static coap_endpoint_t last_source;
 static coap_buf_t coap_aligned_buf;
-static uint16_t coap_buf_len;
 
 #ifdef WITH_DTLS
 #define PSK_DEFAULT_IDENTITY "Client_identity"
@@ -142,12 +141,6 @@ coap_databuf(void)
   return coap_aligned_buf.u8;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-coap_datalen()
-{
-  return coap_buf_len;
-}
-/*---------------------------------------------------------------------------*/
 static int
 hextod(char c)
 {
@@ -197,7 +190,6 @@ stdin_callback(const char *line)
   LOG_INFO("RECV from ");
   LOG_INFO_COAP_EP(&last_source);
   LOG_INFO_(" %u bytes\n", len);
-  coap_buf_len = len;
 
   if(LOG_DBG_ENABLED) {
     int i;
@@ -213,9 +205,9 @@ stdin_callback(const char *line)
 #ifdef WITH_DTLS
   /* DTLS receive??? */
   last_source.secure = 1;
-  dtls_handle_message(dtls_context, (coap_endpoint_t *) coap_src_endpoint(), coap_databuf(), coap_datalen());
+  dtls_handle_message(dtls_context, (coap_endpoint_t *) coap_src_endpoint(), coap_databuf(), len);
 #else
-  coap_receive(coap_src_endpoint(), coap_databuf(), coap_datalen());
+  coap_receive(coap_src_endpoint(), coap_databuf(), len);
 #endif /* WITH_DTLS */
 }
 /*---------------------------------------------------------------------------*/
@@ -351,7 +343,6 @@ input_from_peer(struct dtls_context_t *ctx,
 
   /* Send this into coap-input */
   memmove(coap_databuf(), data, len);
-  coap_buf_len = len;
 
   peer = dtls_get_peer(ctx, session);
   /* If we have a peer then ensure that the endpoint is tagged as secure */
@@ -359,7 +350,7 @@ input_from_peer(struct dtls_context_t *ctx,
     session->secure = 1;
   }
 
-  coap_receive(session, coap_databuf(), coap_datalen());
+  coap_receive(session, coap_databuf(), len);
 
   return 0;
 }

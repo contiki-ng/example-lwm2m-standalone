@@ -50,11 +50,11 @@
 #define LOG_LEVEL_DBG          4 /* Detailed debug */
 
 #ifndef LOG_LEVEL_COAP
-#define LOG_LEVEL_COAP         LOG_LEVEL_DBG
+#define LOG_LEVEL_COAP         LOG_LEVEL_INFO
 #endif /* LOG_LEVEL_COAP */
 
 #ifndef LOG_LEVEL_LWM2M
-#define LOG_LEVEL_LWM2M        LOG_LEVEL_DBG
+#define LOG_LEVEL_LWM2M        LOG_LEVEL_INFO
 #endif /* LOG_LEVEL_LWM2M */
 
 #ifndef LOG_WITH_LOC

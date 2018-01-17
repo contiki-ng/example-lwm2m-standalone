@@ -58,7 +58,7 @@
 #ifdef WITH_DTLS
 #include "tinydtls.h"
 #include "dtls.h"
-#include "dtls_debug.h"
+#include "dtls-log.h"
 #endif /* WITH_DTLS */
 
 #define BUFSIZE 1280
@@ -406,7 +406,6 @@ coap_transport_init(void)
 
 #ifdef WITH_DTLS
   dtls_init();
-  dtls_set_log_level(8);
 
   dtls_ipv4_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if(dtls_ipv4_fd == -1) {
@@ -577,7 +576,9 @@ get_psk_info(struct dtls_context_t *ctx,
     if(id && id_len) {
       ks.identity_hint = id;
       ks.identity_hint_len = id_len;
-      dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
+      LOG_DBG("got psk_identity_hint: '");
+      LOG_DBG_COAP_STRING((const char *)id, id_len);
+      LOG_DBG_("'\n");
     }
 
     if(keystore->coap_get_psk_info) {

@@ -38,6 +38,11 @@
 #ifndef DTLS_SUPPORT_CONF_H_
 #define DTLS_SUPPORT_CONF_H_
 
+/* Use same log level as CoAP as default */
+#define LOG_LEVEL_DTLS LOG_LEVEL_COAP
+
+#define DTLS_LOG_CONF_PATH "coap-log.h"
+
 #include "coap-endpoint.h"
 
 #include "coap-timer.h"

@@ -49,6 +49,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* Log configuration */
+#include "coap-log.h"
+#define LOG_MODULE "Main"
+#define LOG_LEVEL LOG_LEVEL_COAP
+
 #define PSK_DEFAULT_IDENTITY "Client_identity"
 #define PSK_DEFAULT_KEY      "secretPSK"
 
@@ -73,7 +78,7 @@ callback(coap_timer_t *timer)
   if(deregister > 0) {
     deregister--;
     if(deregister == 0) {
-      printf("Deregistering.\n");
+      LOG_INFO("Deregistering.\n");
       lwm2m_rd_client_deregister();
     }
   }
@@ -83,7 +88,7 @@ callback(coap_timer_t *timer)
 static void
 session_callback(struct lwm2m_session_info *si, int state)
 {
-  printf("Got Session Callback!!! %d\n", state);
+  LOG_DBG("Got Session Callback!!! %d\n", state);
 }
 /*---------------------------------------------------------------------------*/
 #ifndef LWM2M_DEFAULT_RD_SERVER
@@ -144,9 +149,9 @@ start_application(int argc, char *argv[])
 
   if(has_server_ep) {
     /* start RD client */
-    printf("Starting RD client to register at ");
+    LOG_INFO("Starting RD client to register at ");
     coap_endpoint_print(&server_ep);
-    printf("\n");
+    LOG_INFO_("\n");
 
 #ifdef WITH_DTLS
 #if COAP_DTLS_KEYSTORE_CONF_WITH_LWM2M
@@ -155,24 +160,24 @@ start_application(int argc, char *argv[])
       lwm2m_security_server_t *server;
       /* Register new server with instance id, server id, lifetime in seconds */
       if(!lwm2m_server_add(0, 1, 600)) {
-        printf("failed to add server object\n");
+        LOG_ERR("failed to add server object\n");
       }
 
       server = lwm2m_security_add_server(0, 1,
                                          (uint8_t *)default_server,
                                          strlen(default_server));
       if(server == NULL) {
-        printf("failed to add security object\n");
+        LOG_ERR("failed to add security object\n");
       } else {
         if(lwm2m_security_set_server_psk(server,
                                          (uint8_t *)PSK_DEFAULT_IDENTITY,
                                          strlen(PSK_DEFAULT_IDENTITY),
                                          (uint8_t *)PSK_DEFAULT_KEY,
                                          strlen(PSK_DEFAULT_KEY))) {
-          printf("registered security object for endpoint %s\n",
-                 default_server);
+          LOG_DBG("registered security object for endpoint %s\n",
+                  default_server);
         } else {
-          printf("failed to register security object\n");
+          LOG_ERR("failed to register security object\n");
         }
       }
     }
@@ -194,8 +199,8 @@ start_application(int argc, char *argv[])
     lwm2m_rd_client_set_session_callback(session_callback);
 
   } else {
-    fprintf(stderr, "No registration server specified.\n");
+    LOG_WARN("No registration server specified.\n");
   }
-  printf("COAP MAX PACKET: %d (BLOCK:%d)\n", COAP_MAX_PACKET_SIZE, COAP_MAX_BLOCK_SIZE);
+  LOG_DBG("COAP MAX PACKET: %d (BLOCK:%d)\n", COAP_MAX_PACKET_SIZE, COAP_MAX_BLOCK_SIZE);
 }
 /*---------------------------------------------------------------------------*/

@@ -37,43 +37,11 @@
 
 #include "tinydtls.h"
 #include "coap-timer.h"
-#include <stdlib.h>
 
-#include <time.h>
-#include <sys/time.h>
-#include <arpa/inet.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-
-#define DEBUG DEBUG_NONE
-#include "dtls_debug.h"
-
-#if DEBUG
-#define PRINTEP(ep) coap_endpoint_print(ep)
-#else /* DEBUG */
-#define PRINTEP(ep)
-#endif /* DEBUG */
-
-extern char *loglevels[];
-/*---------------------------------------------------------------------------*/
-static inline size_t
-print_timestamp(char *s, size_t len)
-{
-#ifdef HAVE_TIME_H
-  time_t t;
-  struct tm *tmp;
-  t = time(NULL);
-  tmp = localtime(&t);
-  return strftime(s, len, "%b %d %H:%M:%S", tmp);
-#else /* alternative implementation: just print the timestamp */
-  uint64_t t;
-  t = coap_timer_uptime();
-  return snprintf(s, len, "%u.%03u",
-		  (unsigned int)(t / 1000),
-		  (unsigned int)(t % 1000));
-#endif /* HAVE_TIME_H */
-}
+/* Log configuration */
+#define LOG_MODULE "dtls-support"
+#define LOG_LEVEL  LOG_LEVEL_DTLS
+#include "dtls-log.h"
 /*---------------------------------------------------------------------------*/
 #include <pthread.h>
 static pthread_mutex_t cipher_context_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -105,95 +73,6 @@ void
 dtls_context_release(dtls_context_t *context)
 {
   free(context);
-}
-/*---------------------------------------------------------------------------*/
-#ifndef NDEBUG
-size_t
-dsrv_print_addr(const session_t *addr, char *buf, size_t len)
-{
-  return 0;
-}
-#endif /* NDEBUG */
-/*---------------------------------------------------------------------------*/
-#ifdef HAVE_VPRINTF
-void
-dsrv_log(log_t level, char *format, ...)
-{
-  static char timebuf[32];
-  va_list ap;
-  FILE *log_fd;
-
-  if(dtls_get_log_level() < level) {
-    return;
-  }
-
-  log_fd = level <= DTLS_LOG_CRIT ? stderr : stdout;
-
-  if(print_timestamp(timebuf, sizeof(timebuf))) {
-    fprintf(log_fd, "%s ", timebuf);
-  }
-
-  if(level <= DTLS_LOG_DEBUG) {
-    fprintf(log_fd, "%s ", loglevels[level]);
-  }
-
-  va_start(ap, format);
-  vfprintf(log_fd, format, ap);
-  va_end(ap);
-  fflush(log_fd);
-}
-#endif /* HAVE_VPRINTF */
-/*---------------------------------------------------------------------------*/
-void
-dtls_dsrv_hexdump_log(log_t level, const char *name,
-                      const unsigned char *buf, size_t length, int extend)
-{
-  static char timebuf[32];
-  FILE *log_fd;
-  int n = 0;
-
-  if(dtls_get_log_level() < level) {
-    return;
-  }
-
-  log_fd = level <= DTLS_LOG_CRIT ? stderr : stdout;
-
-  if(print_timestamp(timebuf, sizeof(timebuf))) {
-    fprintf(log_fd, "%s ", timebuf);
-  }
-
-  if(level <= DTLS_LOG_DEBUG) {
-    fprintf(log_fd, "%s ", loglevels[level]);
-  }
-
-  if(extend) {
-    fprintf(log_fd, "%s: (%zu bytes):\n", name, length);
-
-    while(length--) {
-      if(n % 16 == 0) {
-	fprintf(log_fd, "%08X ", n);
-      }
-
-      fprintf(log_fd, "%02X ", *buf++);
-
-      n++;
-      if(n % 8 == 0) {
-        if(n % 16 == 0) {
-	  fprintf(log_fd, "\n");
-        } else {
-	  fprintf(log_fd, " ");
-        }
-      }
-    }
-  } else {
-    fprintf(log_fd, "%s: (%zu bytes): ", name, length);
-    while(length--) {
-      fprintf(log_fd, "%02X", *buf++);
-    }
-  }
-  fprintf(log_fd, "\n");
-
-  fflush(log_fd);
 }
 /*---------------------------------------------------------------------------*/
 /* --------- time support ----------- */
@@ -266,11 +145,13 @@ dtls_session_equals(const session_t *a, const session_t *b)
   coap_endpoint_t *e1 = (coap_endpoint_t *)a;
   coap_endpoint_t *e2 = (coap_endpoint_t *)b;
 
-  PRINTF(" **** EP:");
-  PRINTEP(e1);
-  PRINTF(" =?= ");
-  PRINTEP(e2);
-  PRINTF(" => %d\n", coap_endpoint_cmp(e1, e2));
+  if(LOG_DBG_ENABLED) {
+    LOG_DBG(" **** EP:");
+    LOG_DBG_COAP_EP(e1);
+    LOG_DBG_(" =?= ");
+    LOG_DBG_COAP_EP(e2);
+    LOG_DBG_(" => %d\n", coap_endpoint_cmp(e1, e2));
+  }
 
   return coap_endpoint_cmp(e1, e2);
 }
@@ -293,6 +174,12 @@ void
 dtls_session_print(const session_t *a)
 {
   coap_endpoint_print((const coap_endpoint_t *)a);
+}
+/*---------------------------------------------------------------------------*/
+void
+dtls_session_log(const session_t *a)
+{
+  coap_endpoint_log((const coap_endpoint_t *)a);
 }
 /*---------------------------------------------------------------------------*/
 /* The init */

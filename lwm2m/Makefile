@@ -23,6 +23,9 @@ SOURCEDIRS   += ${addprefix $(TARGETCDIR)/,. $(APPSDIRS)}
 CFLAGS += -Wall -Werror
 CFLAGS += ${addprefix -I,$(SOURCEDIRS)}
 
+COMMA := ,
+CFLAGS += ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
+
 TRANSPORT ?= ipv4
 ifeq ($(TRANSPORT),ipv4)
   TRANSPORTDIR = coap-ipv4

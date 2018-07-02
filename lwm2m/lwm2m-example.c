@@ -59,6 +59,9 @@
 
 #define WITH_TEST_NOTIFICATION 1
 
+/* The session information - one per server */
+static lwm2m_session_info_t session_info;
+
 void ipso_sensor_temp_init(void);
 void ipso_control_test_init(void);
 void ipso_blockwise_test_init(void);
@@ -79,7 +82,7 @@ callback(coap_timer_t *timer)
     deregister--;
     if(deregister == 0) {
       LOG_INFO("Deregistering.\n");
-      lwm2m_rd_client_deregister();
+      lwm2m_rd_client_deregister(&session_info);
     }
   }
 }
@@ -135,6 +138,8 @@ start_application(int argc, char *argv[])
   /* Initialize the OMA LWM2M engine */
   lwm2m_engine_init();
 
+  lwm2m_rd_client_set_default_endpoint_name(name);
+
   ipso_sensor_temp_init();
   ipso_control_test_init();
   ipso_blockwise_test_init();
@@ -187,16 +192,12 @@ start_application(int argc, char *argv[])
 
 #define BOOTSTRAP 0
 #if BOOTSTRAP
-    lwm2m_rd_client_register_with_bootstrap_server(&server_ep);
-    lwm2m_rd_client_use_bootstrap_server(1);
+    lwm2m_rd_client_register_with_bootstrap_server(&session_info, &server_ep);
 #else /* BOOTSTRAP */
-    lwm2m_rd_client_register_with_server(&server_ep);
+    lwm2m_rd_client_register_with_server(&session_info, &server_ep);
 #endif /* BOOTSTRAP */
-    lwm2m_rd_client_use_registration_server(1);
 
-    lwm2m_rd_client_init(name);
-
-    lwm2m_rd_client_set_session_callback(session_callback);
+    lwm2m_rd_client_set_session_callback(&session_info, session_callback);
 
   } else {
     LOG_WARN("No registration server specified.\n");

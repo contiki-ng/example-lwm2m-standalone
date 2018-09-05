@@ -192,9 +192,9 @@ start_application(int argc, char *argv[])
 
 #define BOOTSTRAP 0
 #if BOOTSTRAP
-    lwm2m_rd_client_register_with_bootstrap_server(&session_info, &server_ep);
+    lwm2m_rd_client_register_with_server(&session_info, &server_ep, LWM2M_RD_CLIENT_BOOTSTRAP_SERVER);
 #else /* BOOTSTRAP */
-    lwm2m_rd_client_register_with_server(&session_info, &server_ep);
+    lwm2m_rd_client_register_with_server(&session_info, &server_ep, LWM2M_RD_CLIENT_LWM2M_SERVER);
 #endif /* BOOTSTRAP */
 
     lwm2m_rd_client_set_session_callback(&session_info, session_callback);

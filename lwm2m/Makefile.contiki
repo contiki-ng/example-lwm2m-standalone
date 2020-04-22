@@ -11,7 +11,7 @@ CP=cp
 MKDIR=mkdir
 
 DTLS_PATH := $(CONTIKI_NG)/os/net/security
-CORE_FILES = sys/cc.h sys/cc-gcc.h lib/list.c lib/memb.c
+CORE_FILES = sys/cc.h sys/cc-gcc.h lib/list.c lib/memb.c lib/random.c
 COAP_FILES = ${addprefix coap/,${filter-out coap-blocking-api.% coap-uip.% coap-timer-default.%,${notdir ${wildcard $(CONTIKI_NG)/os/net/app-layer/coap/coap*}}}}
 LWM2M_FILES = ${addprefix lwm2m/,${filter-out ,${notdir ${wildcard $(CONTIKI_NG)/os/services/lwm2m/lwm2m-*}}}}
 IPSO_FILES = ${addprefix ipso-objects/,${filter-out ipso-leds-control.c ipso-objects.% ipso-temperature.% ipso-light-control.% ipso-button.c,${notdir ${wildcard $(CONTIKI_NG)/os/services/ipso-objects/ipso-*}}}}

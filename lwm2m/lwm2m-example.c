@@ -95,11 +95,11 @@ session_callback(struct lwm2m_session_info *si, int state)
 }
 /*---------------------------------------------------------------------------*/
 #ifndef LWM2M_DEFAULT_RD_SERVER
-/* Default to leshan.eclipse.org */
+/* Default to leshan.eclipseprojects.io */
 #ifdef WITH_DTLS
-#define LWM2M_DEFAULT_RD_SERVER "coaps://5.39.83.206"
+#define LWM2M_DEFAULT_RD_SERVER "coaps://23.97.187.154"
 #else
-#define LWM2M_DEFAULT_RD_SERVER "coap://5.39.83.206"
+#define LWM2M_DEFAULT_RD_SERVER "coap://23.97.187.154"
 #endif
 #endif /* LWM2M_DEFAULT_RD_SERVER */
 /*---------------------------------------------------------------------------*/

@@ -35,7 +35,6 @@
  *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
  */
-import javax.xml.bind.DatatypeConverter;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -90,8 +89,11 @@ public class Hex2UDP implements Runnable {
 
     /* Override this to make something more sensible with the data */
     public void receive(byte[] data) {
-        String s = DatatypeConverter.printHexBinary(data);
-        System.out.println("COAPHEX:" + s);
+        StringBuilder sb = new StringBuilder();
+	for (int i = 0; i < data.length; i++) {
+	    sb.append(String.format("%02x", data[i] & 0xff));;
+	}
+	System.out.println("COAPHEX:" + sb);
     }
 
     /* Loop on std in to get lines of hex to send */
@@ -112,10 +114,13 @@ public class Hex2UDP implements Runnable {
         /* Create a Hex2UDP that print on this out stream */
         Hex2UDP udpc = new Hex2UDP(args[0], Integer.parseInt(args[1])) {
                 public void receive(byte[] data) {
-                    String s = DatatypeConverter.printHexBinary(data);
-                    out.println("COAPHEX:" + s);
+		    StringBuilder sb = new StringBuilder();
+		    for (int i = 0; i < data.length; i++) {
+			sb.append(String.format("%02x", data[i] & 0xff));
+		    }
+                    out.println("COAPHEX:" + sb);
                     out.flush();
-                    System.err.println("IN: " + s);
+                    System.err.println("IN: " + sb);
                 }
             };
 
@@ -130,8 +135,12 @@ public class Hex2UDP implements Runnable {
                 System.err.println("*** stdin closed");
                 System.exit(0);
             } else if (line.startsWith("COAPHEX:")) {
-                byte[] data = DatatypeConverter.parseHexBinary(line.substring(8));
-                udpc.send(data);
+		byte[] data = new byte[(line.length() - 8) / 2];
+		for (int i = 8; i < line.length(); i += 2) {
+		    int v = Integer.parseInt(line.substring(i, i + 2), 16);
+		    data[i/2 - 4] = (byte) (v & 0xff);
+		}
+		udpc.send(data);
             }
             System.err.println("OUT:" + line);
         }

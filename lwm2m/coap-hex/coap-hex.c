@@ -129,6 +129,7 @@ coap_endpoint_parse(const char *text, size_t size, coap_endpoint_t *ep)
 {
   /* Hex based CoAP has no addresses, just writes data to standard out */
   ep->addr = last_source.addr;
+  ep->secure = 0;
 #ifdef WITH_DTLS
   ep->secure = 1;
 #endif /* WITH_DTLS */
